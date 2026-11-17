@@ -60,7 +60,8 @@ Regra: **um dado vai para o compartilhado quando 2 ou mais ferramentas usam esse
 - `hub/`: página inicial com os cartões das ferramentas (lista `FERRAMENTAS` em `hub/src/App.tsx`).
 - `tools/<nome>/`: cada ferramenta é um mini-projeto Vite independente, com build e planejamento próprios.
 - `packages/ui/` (`@pst/ui`): só peças genéricas (componentes, tema, `cn`, storage). Nenhuma regra de negócio.
-- Build: `npm run build` gera um site estático em `dist/` (hub na raiz, cada ferramenta em `dist/<nome>/`).
+- Build: `npm run build` gera um site estático em `dist/` (hub na raiz, cada ferramenta em `dist/<nome>/`), com caminhos relativos: funciona na raiz de um domínio ou numa subpasta.
+- Publicação: cada push no `main` roda os testes, faz o build e publica no GitHub Pages (`.github/workflows/pages.yml`).
 - `packages/dados/` (`@pst/dados`): dados da gráfica que várias ferramentas usam (ver "Dados compartilhados").
 - Dados: localStorage. Os compartilhados ficam em `pst:dados:v1`, e os de uma ferramenta só ficam em `pst:<nome>:v1`. Para trocar por servidor no futuro, basta mudar `packages/ui/src/storage.ts`.
 
