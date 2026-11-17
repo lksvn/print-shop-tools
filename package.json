@@ -1,0 +1,14 @@
+{
+  "name": "print-shop-tools",
+  "private": true,
+  "workspaces": [
+    "hub",
+    "tools/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node dev.mjs",
+    "test": "npm test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  }
+}

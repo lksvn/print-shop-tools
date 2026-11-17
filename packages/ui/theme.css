@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@source "./src";
+
+/* Modo escuro pela classe .dark no <html> (definida pelo script do index.html e pelo SeletorTema). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Cores por papel, não por tom: use bg-fundo, text-texto-2 etc. e o modo escuro vem de graça. */
+:root {
+  color-scheme: light;
+  --fundo: oklch(0.984 0.003 248);
+  --superficie: oklch(1 0 0);
+  --suave: oklch(0.968 0.007 248);
+  --borda: oklch(0.929 0.013 256);
+  --borda-forte: oklch(0.869 0.022 253);
+  --texto: oklch(0.208 0.042 266);
+  --texto-2: oklch(0.446 0.043 257);
+  --texto-3: oklch(0.554 0.046 257);
+  --tinta: oklch(0.38 0.11 255);
+  --tinta-hover: oklch(0.31 0.1 255);
+  --sobre-tinta: oklch(1 0 0);
+  --ok: oklch(0.45 0.12 150);
+  --ok-fundo: oklch(0.982 0.018 156);
+  --alerta: oklch(0.5 0.12 75);
+  --alerta-fundo: oklch(0.987 0.022 95);
+  --erro: oklch(0.5 0.18 27);
+  --erro-fundo: oklch(0.971 0.013 17);
+}
+
+.dark {
+  color-scheme: dark;
+  --fundo: oklch(0.17 0.01 255);
+  --superficie: oklch(0.21 0.012 255);
+  --suave: oklch(0.26 0.012 255);
+  --borda: oklch(0.3 0.012 255);
+  --borda-forte: oklch(0.4 0.012 255);
+  --texto: oklch(0.95 0.005 255);
+  --texto-2: oklch(0.8 0.01 255);
+  --texto-3: oklch(0.7 0.01 255);
+  --tinta: oklch(0.76 0.11 255);
+  --tinta-hover: oklch(0.82 0.09 255);
+  --sobre-tinta: oklch(0.17 0.02 255);
+  --ok: oklch(0.78 0.14 150);
+  --ok-fundo: oklch(0.27 0.04 150);
+  --alerta: oklch(0.83 0.13 80);
+  --alerta-fundo: oklch(0.28 0.04 80);
+  --erro: oklch(0.75 0.15 25);
+  --erro-fundo: oklch(0.28 0.05 25);
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-suave: var(--suave);
+  --color-borda: var(--borda);
+  --color-borda-forte: var(--borda-forte);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-texto-3: var(--texto-3);
+  --color-tinta: var(--tinta);
+  --color-tinta-hover: var(--tinta-hover);
+  --color-sobre-tinta: var(--sobre-tinta);
+  --color-ok: var(--ok);
+  --color-ok-fundo: var(--ok-fundo);
+  --color-alerta: var(--alerta);
+  --color-alerta-fundo: var(--alerta-fundo);
+  --color-erro: var(--erro);
+  --color-erro-fundo: var(--erro-fundo);
+}
+
+@layer base {
+  body {
+    @apply bg-fundo text-texto antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-tinta;
+  }
+}

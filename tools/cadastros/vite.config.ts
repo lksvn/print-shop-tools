@@ -1,0 +1,10 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  base: '/cadastros/',
+  server: { port: 5175, strictPort: true },
+  build: { outDir: '../../dist/cadastros', emptyOutDir: true },
+})
