@@ -72,6 +72,10 @@
   body {
     @apply bg-fundo text-texto antialiased;
   }
+  /* Sem isto, uma tabela larga dentro de um grid alarga a página inteira no celular. */
+  .grid > * {
+    min-width: 0;
+  }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-tinta;
   }

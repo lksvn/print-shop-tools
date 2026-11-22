@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from 'react'
 import { carregarDados, DADOS_PADRAO, salvarDados, validarDados, type Dados, type TipoChavePix } from '@pst/dados'
-import { Button, Card, formatarCnpj, formatarCpf, Input, InputTelefone, Label, montar, soDigitos, Textarea, toast, Topo } from '@pst/ui'
+import { Button, Card, formatarCnpj, formatarCpf, Input, InputTelefone, Label, montar, Select, soDigitos, Textarea, toast, Topo } from '@pst/ui'
 import { exportarJson, importarJson } from '@pst/ui/storage'
 import { Endereco } from './Endereco'
 import { Precos } from './Precos'
@@ -180,12 +180,11 @@ function App() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-1.5">
               <Label htmlFor={idTipoPix}>Tipo da chave</Label>
-              <select
+              <Select
                 id={idTipoPix}
                 value={dados.pix.tipo}
                 // Cada tipo tem um formato; trocar o tipo limpa a chave para não misturar.
                 onChange={(e) => editar((d) => ({ ...d, pix: { ...d.pix, tipo: e.target.value as TipoChavePix, chave: '' } }))}
-                className="h-9 rounded-md border border-borda-forte bg-superficie px-2 text-sm"
               >
                 <option value="">Escolha</option>
                 <option value="cpf">CPF</option>
@@ -193,7 +192,7 @@ function App() {
                 <option value="telefone">Telefone</option>
                 <option value="email">E-mail</option>
                 <option value="aleatoria">Chave aleatória</option>
-              </select>
+              </Select>
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor={idChavePix}>Chave Pix</Label>

@@ -23,7 +23,7 @@ const FERRAMENTAS: Ferramenta[] = [
     nome: 'Orçamento de PDF',
     descricao: 'Confere tamanho, resolução e outros problemas do arquivo e monta o orçamento para enviar ao cliente.',
     caminho: 'orcamento-pdf/',
-    status: 'planejada',
+    status: 'pronta',
   },
   {
     nome: 'Respostas prontas',

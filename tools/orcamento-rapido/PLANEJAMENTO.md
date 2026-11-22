@@ -15,7 +15,7 @@ v1 pronta (2026-11-17).
 - [x] Mostrar o preço unitário e o total.
 - [x] Vários itens no mesmo orçamento (ex.: 50 A4 em couchê + 10 A3 adesivo).
 - [x] Mensagem com o modelo de orçamento dos Cadastros, mais os botões **Copiar** e **Enviar pelo WhatsApp**.
-- [x] Botão "gerar Pix com este valor", que abre a ferramenta Pix já com o total.
+- [x] Botão "Gerar Pix" com o total, que abre a ferramenta Pix numa modal (o orçamento continua na tela).
 
 ## Futuras features
 

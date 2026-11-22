@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 // Porta de desenvolvimento de cada ferramenta. Nova ferramenta = nova linha aqui.
 const PORTAS: Record<string, number> = {
   cadastros: 5175,
+  'orcamento-pdf': 5174,
   'respostas-prontas': 5176,
   'orcamento-rapido': 5177,
   pix: 5178,

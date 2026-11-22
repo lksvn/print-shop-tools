@@ -1,7 +1,7 @@
 // Componentes visuais genéricos (estilo shadcn/ui, escritos à mão). Nada de regra de negócio aqui.
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { Component, StrictMode, useEffect, useId, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react'
+import { Component, StrictMode, useEffect, useId, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
@@ -25,7 +25,7 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md px-4 text-sm font-medium sm:h-9 transition-colors disabled:pointer-events-none disabled:opacity-50',
         variantesBotao[variante],
         className,
       )}
@@ -34,11 +34,16 @@ export function Button({
   )
 }
 
+// Texto 16 px no celular: abaixo disso o iPhone dá zoom ao tocar no campo.
 const campo =
-  'w-full rounded-md border border-borda-forte bg-superficie px-3 text-sm placeholder:text-texto-3 focus-visible:border-tinta'
+  'w-full rounded-md border border-borda-forte bg-superficie px-3 text-base placeholder:text-texto-3 focus-visible:border-tinta sm:text-sm'
 
 export function Input({ className, ...props }: ComponentProps<'input'>) {
-  return <input className={cn(campo, 'h-9', className)} {...props} />
+  return <input className={cn(campo, 'h-10 sm:h-9', className)} {...props} />
+}
+
+export function Select({ className, ...props }: ComponentProps<'select'>) {
+  return <select className={cn(campo, 'h-10 px-2 sm:h-9', className)} {...props} />
 }
 
 export function Textarea({ className, ...props }: ComponentProps<'textarea'>) {
@@ -73,7 +78,8 @@ export function Badge({ tom = 'neutro', className, ...props }: ComponentProps<'s
 
 export function Table({ className, ...props }: ComponentProps<'table'>) {
   return (
-    <div className="overflow-x-auto">
+    // relative: prende os textos sr-only (absolutos) dentro da rolagem; sem isso eles alargam a página no celular.
+    <div className="relative overflow-x-auto">
       <table
         className={cn(
           'w-full text-left text-sm [&_td]:border-t [&_td]:border-borda [&_td]:px-3 [&_td]:py-2 [&_th]:px-3 [&_th]:py-2 [&_th]:font-medium [&_th]:text-texto-3',
@@ -116,7 +122,7 @@ export function SeletorTema({ className }: { className?: string }) {
         id={id}
         value={tema}
         onChange={(e) => setTema(e.target.value as Tema)}
-        className={cn(campo, 'h-8 w-auto')}
+        className={cn(campo, 'h-10 w-auto px-2 sm:h-8')}
       >
         <option value="auto">Automático</option>
         <option value="claro">Claro</option>
@@ -309,7 +315,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={aberto}
           disabled={disabled}
-          className={cn(campo, 'flex h-9 items-center justify-between gap-2 text-left disabled:opacity-50', className)}
+          className={cn(campo, 'flex h-10 items-center justify-between gap-2 text-left disabled:opacity-50 sm:h-9', className)}
         >
           <span className={cn('truncate', !atual && 'text-texto-3')}>{atual?.rotulo ?? (valor || placeholder)}</span>
           <span aria-hidden className="text-texto-3">▾</span>
@@ -328,7 +334,7 @@ export function Combobox({
               onValueChange={setBusca}
               aria-label={rotuloBusca}
               placeholder={rotuloBusca}
-              className={cn(campo, 'mb-1 h-8')}
+              className={cn(campo, 'mb-1 h-10 sm:h-8')}
             />
             <Command.List className="max-h-64 overflow-y-auto">
               <Command.Empty className="px-2 py-1.5 text-sm text-texto-3">Nenhum resultado.</Command.Empty>
@@ -340,7 +346,7 @@ export function Combobox({
                     aoMudar(o.valor)
                     setAberto(false)
                   }}
-                  className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-sm data-[selected=true]:bg-suave"
+                  className="flex cursor-pointer items-center justify-between rounded px-2 py-2.5 text-base data-[selected=true]:bg-suave sm:py-1.5 sm:text-sm"
                 >
                   {o.rotulo}
                   {o.valor === valor && <span aria-hidden>✓</span>}
@@ -463,5 +469,73 @@ export function BotaoCopiar({
     >
       <span aria-live="polite">{copiado ? 'Copiado!' : children}</span>
     </Button>
+  )
+}
+
+// --- Modal: <dialog> nativo (foco preso dentro, Esc fecha). Clicar fora também fecha. ---
+
+export function Modal({
+  aberto,
+  aoFechar,
+  titulo,
+  children,
+  className,
+}: {
+  aberto: boolean
+  aoFechar: () => void
+  titulo: string
+  children: ReactNode
+  className?: string
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const d = ref.current
+    if (aberto && !d?.open) d?.showModal()
+    if (!aberto && d?.open) d.close()
+  }, [aberto])
+
+  return (
+    <dialog
+      ref={ref}
+      aria-label={titulo}
+      onClose={aoFechar}
+      onClick={(e) => e.target === ref.current && aoFechar()}
+      className={cn(
+        'm-auto rounded-lg border border-borda bg-fundo p-0 text-texto shadow-xl backdrop:bg-black/50',
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-4 border-b border-borda px-4 py-2">
+        <h2 className="font-semibold">{titulo}</h2>
+        <Button variante="fantasma" onClick={aoFechar} aria-label="Fechar">
+          Fechar
+        </Button>
+      </div>
+      {aberto && children}
+    </dialog>
+  )
+}
+
+/** Botão que abre a ferramenta Pix numa modal, já com o valor. A página de trás não perde nada. */
+export function BotaoPix({ valor }: { valor: number }) {
+  const [aberto, setAberto] = useState(false)
+  const rotulo = `Pix de R$ ${formatarMoeda(valor)}`
+  return (
+    <>
+      <Button variante="fantasma" className="text-tinta" onClick={() => setAberto(true)}>
+        Gerar {rotulo}
+      </Button>
+      <Modal aberto={aberto} aoFechar={() => setAberto(false)} titulo={rotulo} className="w-[min(60rem,95vw)]">
+        <iframe
+          title={rotulo}
+          src={`../pix/?valor=${valor.toFixed(2)}&embutido=1`}
+          className="block h-[75vh] w-full sm:h-[min(28rem,80vh)]"
+          // Com o foco dentro do Pix, o Esc chega na página do iframe e não no <dialog>; repassa aqui (mesma origem).
+          onLoad={(e) =>
+            e.currentTarget.contentWindow?.addEventListener('keydown', (ev) => ev.key === 'Escape' && setAberto(false))
+          }
+        />
+      </Modal>
+    </>
   )
 }

@@ -1,9 +1,12 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
 import { carregarDados } from '@pst/dados'
-import { BotaoCopiar, Card, formatarMoeda, Input, InputMoeda, InputTelefone, Label, linkWhatsapp, montar, Topo } from '@pst/ui'
+import { BotaoCopiar, Card, cn, formatarMoeda, Input, InputMoeda, InputTelefone, Label, linkWhatsapp, montar, Topo } from '@pst/ui'
 import { gerarPix, problemaNaChave } from './brcode'
 import './index.css'
+
+// Aberta dentro de outra ferramenta (modal do BotaoPix): sem topo nem título.
+const embutido = new URLSearchParams(location.search).has('embutido')
 
 /** Valor vindo de outra ferramenta: ../pix/?valor=123.45 */
 function valorDaUrl() {
@@ -42,13 +45,17 @@ function App() {
   const mensagem = `${valor ? `Segue o Pix de R$ ${formatarMoeda(valor)}` : 'Segue o Pix'}. É só copiar o código abaixo e colar no app do banco, em "Pix copia e cola":`
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-10">
-      <Topo />
-      <h1 className="mt-3 text-2xl font-semibold">Pix com valor</h1>
-      <p className="mt-1 text-texto-2">O cliente paga o valor exato, sem digitar chave nem valor.</p>
+    <main className={embutido ? 'p-4' : 'mx-auto max-w-4xl px-5 py-10'}>
+      {!embutido && (
+        <>
+          <Topo />
+          <h1 className="mt-3 text-2xl font-semibold">Pix com valor</h1>
+          <p className="mt-1 text-texto-2">O cliente paga o valor exato, sem digitar chave nem valor.</p>
+        </>
+      )}
 
       {problema ? (
-        <Card className="mt-6">
+        <Card className={embutido ? '' : 'mt-6'}>
           <p role="alert" className="text-alerta">
             {problema}{' '}
             <a href={cidade.trim() ? '../cadastros/#pix' : '../cadastros/#loja'} className="underline">
@@ -57,12 +64,12 @@ function App() {
           </p>
         </Card>
       ) : (
-        <div className="mt-6 grid gap-6 md:grid-cols-[1fr_18rem]">
+        <div className={cn('grid gap-6 md:grid-cols-[1fr_18rem]', !embutido && 'mt-6')}>
           <Card className="grid content-start gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-1.5">
                 <Label htmlFor={ids.valor}>Valor (R$)</Label>
-                <InputMoeda id={ids.valor} valor={valor} aoMudar={setValor} placeholder="Cliente digita" autoFocus />
+                <InputMoeda id={ids.valor} valor={valor} aoMudar={setValor} placeholder="Cliente digita" autoFocus={!embutido} />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor={ids.identificador}>Identificação (opcional)</Label>
@@ -87,7 +94,7 @@ function App() {
                 rows={4}
                 value={codigo}
                 onFocus={(e) => e.target.select()}
-                className="w-full resize-none rounded-md border border-borda bg-fundo p-3 font-mono text-xs break-all"
+                className="w-full resize-none rounded-md border border-borda bg-fundo p-3 font-mono text-base break-all sm:text-xs"
               />
             </div>
 
@@ -102,7 +109,7 @@ function App() {
                 href={linkWhatsapp(`${mensagem}\n\n${codigo}`, telefone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 items-center rounded-md border border-borda-forte bg-superficie px-4 text-sm font-medium hover:bg-suave"
+                className="inline-flex h-10 items-center rounded-md border border-borda-forte bg-superficie px-4 text-sm font-medium hover:bg-suave sm:h-9"
               >
                 Enviar pelo WhatsApp
               </a>
@@ -114,7 +121,8 @@ function App() {
             )}
           </Card>
 
-          <Card className="grid content-start justify-items-center gap-2 text-center">
+          {/* No celular o QR vem primeiro: é o que o cliente usa no balcão. */}
+          <Card className="order-first grid content-start justify-items-center gap-2 text-center md:order-none">
             {/* QR sempre em fundo branco: leitores de celular falham com QR claro sobre escuro. */}
             {qr && (
               <img

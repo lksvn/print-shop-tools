@@ -1,14 +1,15 @@
 import { useId, useMemo, useState } from 'react'
-import { calcularOrcamento, carregarDados, precoDe, valoresAutomaticos, type ItemOrcamento } from '@pst/dados'
+import { calcularOrcamento, carregarDados, precoDe, reais, textoDosItens, valoresAutomaticos, type ItemOrcamento } from '@pst/dados'
 import {
   BotaoCopiar,
+  BotaoPix,
   Button,
   Card,
   faltando,
-  formatarMoeda,
   Input,
   InputTelefone,
   Label,
+  Select,
   linkWhatsapp,
   montar,
   preencher,
@@ -18,8 +19,6 @@ import './index.css'
 
 type Item = ItemOrcamento & { id: string }
 
-const reais = (v: number) => `R$ ${formatarMoeda(v)}`
-const select = 'h-9 w-full rounded-md border border-borda-forte bg-superficie px-2 text-sm'
 
 function App() {
   const dados = useMemo(carregarDados, [])
@@ -41,14 +40,10 @@ function App() {
   const mudar = (id: string, mudanca: Partial<Item>) => setItens((lista) => lista.map((i) => (i.id === id ? { ...i, ...mudanca } : i)))
 
   const { linhas, total, semPreco } = calcularOrcamento(dados, itens)
-  const textoItens = linhas
-    .filter((l) => l.subtotal !== undefined && l.quantidade > 0)
-    .map((l) => `• ${l.quantidade} × ${l.folha} ${l.papel} (${reais(l.unitario!)} cada): ${reais(l.subtotal!)}`)
-    .join('\n')
   const mensagem = preencher(dados.modeloOrcamento, {
     ...valoresAutomaticos(dados),
     cliente: cliente.trim(),
-    itens: textoItens,
+    itens: textoDosItens(linhas),
     total: reais(total),
   })
   const falta = faltando(mensagem)
@@ -82,12 +77,12 @@ function App() {
           {linhas.map((l, n) => {
             const item = itens[n]
             return (
-              <li key={item.id} className="grid items-end gap-3 sm:grid-cols-[1fr_7rem_6rem_7rem_auto]">
-                <div className="grid gap-1.5">
+              <li key={item.id} className="grid grid-cols-2 items-end gap-3 border-b border-borda pb-3 last:border-0 sm:grid-cols-[1fr_7rem_6rem_7rem_auto] sm:border-0 sm:pb-0">
+                <div className="col-span-2 grid gap-1.5 sm:col-span-1">
                   <Label htmlFor={`${item.id}-papel`}>Papel</Label>
-                  <select
+                  <Select
                     id={`${item.id}-papel`}
-                    className={select}
+                   
                     value={item.papel}
                     onChange={(e) => {
                       const folhas = folhasDe(e.target.value)
@@ -98,20 +93,20 @@ function App() {
                     {papeis.map((p) => (
                       <option key={p.nome}>{p.nome}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor={`${item.id}-folha`}>Folha</Label>
-                  <select
+                  <Select
                     id={`${item.id}-folha`}
-                    className={select}
+                   
                     value={item.folha}
                     onChange={(e) => mudar(item.id, { folha: e.target.value })}
                   >
                     {folhasDe(item.papel).map((f) => (
                       <option key={f}>{f}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor={`${item.id}-qtd`}>Quantidade</Label>
@@ -125,7 +120,7 @@ function App() {
                 </div>
                 <div className="grid gap-1.5 text-right">
                   <span className="text-xs text-texto-3">{l.unitario !== undefined && `${reais(l.unitario)} cada`}</span>
-                  <span className="flex h-9 items-center justify-end font-medium tabular-nums">
+                  <span className="flex h-10 items-center justify-end font-medium sm:h-9 tabular-nums">
                     {l.subtotal !== undefined ? reais(l.subtotal) : '—'}
                   </span>
                 </div>
@@ -187,18 +182,11 @@ function App() {
             href={linkWhatsapp(mensagem, telefone)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 items-center rounded-md border border-borda-forte bg-superficie px-4 text-sm font-medium hover:bg-suave"
+            className="inline-flex h-10 items-center rounded-md border border-borda-forte bg-superficie px-4 text-sm font-medium hover:bg-suave sm:h-9"
           >
             Enviar pelo WhatsApp
           </a>
-          {total > 0 && (
-            <a
-              href={`../pix/?valor=${total.toFixed(2)}`}
-              className="inline-flex h-9 items-center rounded-md px-4 text-sm font-medium text-tinta hover:bg-suave"
-            >
-              Gerar Pix de {reais(total)}
-            </a>
-          )}
+          {total > 0 && <BotaoPix valor={total} />}
         </div>
         {erro && (
           <p role="alert" className="text-sm text-erro">

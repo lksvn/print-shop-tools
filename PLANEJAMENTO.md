@@ -8,7 +8,7 @@ As regras de negócio vêm de um especialista em gráfica. As ferramentas traduz
 | Ferramenta | Pasta | Tipo | Status |
 |---|---|---|---|
 | Cadastros da gráfica | `tools/cadastros` | base (edita os dados compartilhados) | **v1 pronta** (2026-11-17) |
-| Orçamento de PDF | `tools/orcamento-pdf` | principal | planejada (aguardando especialista, rodada 2) |
+| Orçamento de PDF | `tools/orcamento-pdf` | principal | **protótipo** (2026-11-22), regras provisórias até a rodada 2 |
 | Respostas prontas | `tools/respostas-prontas` | ação rápida | **v1 pronta** (2026-11-17) |
 | Orçamento rápido | `tools/orcamento-rapido` | ação rápida | **v1 pronta** (2026-11-17) |
 | Pix com valor | `tools/pix` | ação rápida | **v1 pronta** (2026-11-17), falta teste real de R$ 0,01 |
@@ -108,6 +108,7 @@ Não será construído agora. A ideia é que nada feito hoje impeça isso depois
 - Nada de pastas `utils/`, `hooks/`, `types/` com um arquivo só. Tipos ficam junto do código.
 - Cores sempre pelos nomes do tema (`bg-fundo`, `bg-superficie`, `text-texto-2`, `border-borda`, `text-tinta`…), nunca `slate-*` ou `white`. Assim o modo escuro funciona sem esforço. Os valores ficam em `packages/ui/theme.css`.
 - **Feedback**: salvar, apagar ou importar mostram `toast('…')` do `@pst/ui`, que some sozinho (no salvamento automático, só depois que a digitação para). Copiar troca o texto do botão (`BotaoCopiar`). Carregamento aparece no próprio campo. Erros e avisos ficam junto do campo. Não há linha fixa de "deu certo" na página.
+- **Celular**: campos, selects e botões com 40 px de altura e texto de 16 px no celular (abaixo disso o iPhone dá zoom ao tocar), 36 px/14 px a partir de `sm`, já embutido nos componentes do `@pst/ui` (`Input`, `Select`, `Button`, `Combobox`). Use `<Select>` em vez de `<select>` solto. Tabelas largas rolam por dentro (`Table`); listas com muitas colunas viram blocos no celular (ex.: páginas do Orçamento de PDF). Conferir cada tela nova em 375 px de largura, sem rolagem lateral.
 - **Exportar/importar**: toda ferramenta que guarda dados criados ou editados pelo usuário tem os botões Exportar e Importar no topo. O arquivo é um .json com o mesmo formato salvo; ao importar, ele é validado e substitui os dados atuais depois de uma confirmação. Ferramenta que só calcula, sem dados próprios, não precisa. Ao planejar uma ferramenta, anotar nas Notas técnicas se ela guarda dados e, portanto, se precisa de exportar/importar.
 
 ## Nova ferramenta

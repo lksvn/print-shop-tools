@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calcularOrcamento, DADOS_PADRAO, ENDERECO_VAZIO, valoresAutomaticos, formatarEndereco, removerFolha, renomearFolha, validarDados } from './index'
+import { calcularOrcamento, DADOS_PADRAO, textoDosItens, ENDERECO_VAZIO, valoresAutomaticos, formatarEndereco, removerFolha, renomearFolha, validarDados } from './index'
 
 describe('validarDados', () => {
   it('aceita os dados padrão', () => {
@@ -93,6 +93,14 @@ describe('orçamento', () => {
   it('arredonda em centavos (sem 0,1 + 0,2)', () => {
     const d = { ...dados, papeis: [{ nome: 'X', precos: { A4: 0.1 } }] }
     expect(calcularOrcamento(d, [{ papel: 'X', folha: 'A4', quantidade: 3 }]).total).toBe(0.3)
+  })
+
+  it('monta as linhas da mensagem, sem itens sem preço', () => {
+    const r = calcularOrcamento(dados, [
+      { papel: 'Couchê', folha: 'A4', quantidade: 50 },
+      { papel: 'Adesivo', folha: 'A4', quantidade: 1 },
+    ])
+    expect(textoDosItens(r.linhas)).toBe('• 50 × A4 Couchê (R$ 1,50 cada): R$ 75,00')
   })
 
   it('item sem preço fica fora do total e é avisado', () => {

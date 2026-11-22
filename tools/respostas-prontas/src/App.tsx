@@ -50,6 +50,13 @@ function App() {
     setErro('')
   }
 
+  // No celular a resposta fica abaixo da lista: rola até ela ao tocar num título.
+  function escolherNaLista(id: string) {
+    escolher(id)
+    if (matchMedia('(max-width: 767px)').matches)
+      requestAnimationFrame(() => document.getElementById('resposta')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+
   function nova() {
     const r: Resposta = { id: crypto.randomUUID(), titulo: 'Nova resposta', texto: '' }
     setRespostas((rs) => [...rs, r])
@@ -119,9 +126,9 @@ function App() {
                 <button
                   type="button"
                   aria-current={r.id === selecionada ? 'true' : undefined}
-                  onClick={() => escolher(r.id)}
+                  onClick={() => escolherNaLista(r.id)}
                   className={cn(
-                    'w-full cursor-pointer rounded-md px-3 py-2 text-left text-sm hover:bg-suave',
+                    'w-full cursor-pointer rounded-md px-3 py-2.5 text-left text-sm hover:bg-suave sm:py-2',
                     r.id === selecionada && 'bg-suave font-medium text-tinta',
                   )}
                 >
@@ -137,7 +144,7 @@ function App() {
         </nav>
 
         {atual && (
-          <Card>
+          <Card id="resposta" className="scroll-mt-4">
             {editando ? (
               <Editor
                 key={atual.id}
@@ -211,7 +218,7 @@ function App() {
                     href={linkWhatsapp(texto, telefone)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-9 items-center rounded-md border border-borda-forte bg-superficie px-4 text-sm font-medium hover:bg-suave"
+                    className="inline-flex h-10 items-center rounded-md border border-borda-forte bg-superficie px-4 text-sm font-medium hover:bg-suave sm:h-9"
                   >
                     Enviar pelo WhatsApp
                   </a>

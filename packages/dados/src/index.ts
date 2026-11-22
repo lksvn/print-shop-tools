@@ -1,6 +1,6 @@
 // Dados da gráfica usados por 2 ou mais ferramentas. Só a ferramenta Cadastros edita; as outras só leem.
 // Um objeto Dados = uma empresa (na fase multi-empresa vira uma linha por empresa_id).
-import { formatarData, formatarTelefone, somarDiasUteis } from '@pst/ui'
+import { formatarData, formatarMoeda, formatarTelefone, somarDiasUteis } from '@pst/ui'
 import { carregar, salvar } from '@pst/ui/storage'
 
 export type Endereco = {
@@ -236,3 +236,12 @@ export function calcularOrcamento(dados: Dados, itens: ItemOrcamento[]) {
     semPreco: linhas.filter((l) => l.unitario === undefined),
   }
 }
+
+export const reais = (v: number) => `R$ ${formatarMoeda(v)}`
+
+/** Linhas dos itens para a mensagem ao cliente ({itens}). Itens sem preço ou com quantidade 0 ficam de fora. */
+export const textoDosItens = (linhas: ReturnType<typeof calcularOrcamento>['linhas']) =>
+  linhas
+    .filter((l) => l.unitario !== undefined && l.subtotal !== undefined && l.quantidade > 0)
+    .map((l) => `• ${l.quantidade} × ${l.folha} ${l.papel} (${reais(l.unitario!)} cada): ${reais(l.subtotal!)}`)
+    .join('\n')

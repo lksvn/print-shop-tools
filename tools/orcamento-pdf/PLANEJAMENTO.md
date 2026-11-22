@@ -11,22 +11,22 @@ Sai com uma mensagem de orçamento pronta para copiar ou mandar no WhatsApp.
 
 ## Status
 
-Planejada. O 1º lote de respostas do especialista chegou (2026-11-16). Faltam as perguntas da rodada 2 antes de começar o código.
+Protótipo pronto (2026-11-22). Algumas regras são provisórias até a rodada 2 do especialista (girar a arte, sangria, margem) e estão marcadas nas Notas técnicas.
 
 ## Features (v1)
 
-- [ ] **Enquadramento na folha**: a página entra na menor folha da tabela em que cabe (medida linear). Exemplo: 20×20 cm → A4; 23×23 cm → A3. As folhas são cadastradas na tabela (A6 a A3 vêm de exemplo, e dá para incluir outras). Maior que a maior folha cadastrada → "Fora da tabela: orçar à parte", sem preço. Falta confirmar se a arte pode ser girada (rodada 2, pergunta 1).
-- [ ] **Papel**: o atendente escolhe o papel. A lista de papéis é editável: os que o especialista citou são exemplos e já vêm cadastrados. O preço vem da tabela papel × folha. Um papel pode existir só em algumas folhas (ex.: adesivo com recorte só em A3).
-- [ ] **Cálculo**: preço (papel, folha) × páginas × cópias.
-- [ ] **Avisos de produção** por página:
+- [x] **Enquadramento na folha**: a página entra na menor folha da tabela em que cabe (medida linear). Exemplo: 20×20 cm → A4; 23×23 cm → A3. As folhas são cadastradas na tabela (A6 a A3 vêm de exemplo, e dá para incluir outras). Maior que a maior folha cadastrada → "Fora da tabela: orçar à parte", sem preço. Provisório: a arte pode girar (23×5 cm → A4), até a rodada 2, pergunta 1.
+- [x] **Papel**: o atendente escolhe o papel. A lista de papéis é editável: os que o especialista citou são exemplos e já vêm cadastrados. O preço vem da tabela papel × folha. Um papel pode existir só em algumas folhas (ex.: adesivo com recorte só em A3).
+- [x] **Cálculo**: preço (papel, folha) × páginas × cópias.
+- [x] **Avisos de produção** por página:
   - imagem abaixo de 300 DPI, no tamanho original: aviso "conferir" (a pessoa decide);
   - texto menor que 10 pt (o tamanho 10 do Word);
   - conteúdo dentro da margem de segurança (perto demais da borda);
   - falta de sangria;
   - fonte não incorporada no PDF.
-- [ ] **Cor**: só informativo (CMYK / RGB / cinza), sem alerta. As máquinas digitais convertem para CMYK sozinhas.
-- [ ] **Mensagem** de orçamento com o modelo dos Cadastros, botão Copiar e botão Enviar pelo WhatsApp (wa.me).
-- [ ] **Tabela de preços**: lida dos Cadastros (`@pst/dados`). Aqui só aparece o link "editar nos Cadastros".
+- [ ] **Cor** (ficou para depois): só informativo (CMYK / RGB / cinza), sem alerta. As máquinas digitais convertem para CMYK sozinhas.
+- [x] **Mensagem** de orçamento com o modelo dos Cadastros, botão Copiar, Enviar pelo WhatsApp (wa.me) e Gerar Pix do total (abre o Pix numa modal, sem perder o PDF aberto).
+- [x] **Tabela de preços**: lida dos Cadastros (`@pst/dados`). Aqui só aparece o link "editar nos Cadastros".
 
 ## Futuras features
 
@@ -78,12 +78,19 @@ Planejada. O 1º lote de respostas do especialista chegou (2026-11-16). Faltam a
 
 ## Notas técnicas
 
-- `src/analise.ts`: funções puras (enquadramento, DPI, avisos, total, mensagem) (folhas, papéis e limites vêm do `@pst/dados`; preço e total usam `precoDe`/`calcularOrcamento` de lá). Testes em `analise.test.ts`.
-- `src/lerPdf.ts`: lê o PDF.
-  - pdfjs-dist: tamanho, DPI das imagens e tamanho do texto (`getTextContent`: altura da fonte em pt).
-  - pdf-lib: fontes não incorporadas (sem `FontFile` no `FontDescriptor`) e espaço de cor.
-- Margem de segurança: desenhar a página num canvas e procurar algo que não seja branco na faixa da borda. Só funciona no navegador; no chatbot (fase 2) vai precisar de outra forma.
-- Sangria: se o PDF declara `BleedBox`/`TrimBox`, usar esses valores. Se não declara, avisar quando o conteúdo encosta na borda de uma página do tamanho exato da folha. A regra final depende da rodada 2, pergunta 2.
-- Dados: folhas, papéis, preços, limites de produção e modelo da mensagem ficam no `@pst/dados` (ver "Dados compartilhados" no PLANEJAMENTO.md da raiz).
-- `shortcut:` a cor é lida por regex no stream da página e não entra em Form XObjects aninhados. Como agora é só informativa, um erro aqui não bloqueia nada.
-- Exportar/importar: não precisa na v1 (tabela e limites vêm dos Cadastros; o PDF não é guardado).
+- `src/analise.ts`: regras sem pdf.js (enquadramento, avisos, itens do orçamento). Testes em `analise.test.ts`. Preço, total e texto dos itens vêm do `@pst/dados` (`calcularOrcamento`, `textoDosItens`), os mesmos do Orçamento rápido.
+- `src/lerPdf.ts`: lê o PDF no navegador com pdfjs-dist (o arquivo não sai do computador). Mede por página:
+  - tamanho (CropBox, já com a rotação da página);
+  - pior DPI das imagens: pixels ÷ tamanho desenhado, acompanhando a matriz de transformação (`save`/`restore`/`transform` e Form XObjects);
+  - menor texto (pt) e texto mais perto da borda, por `getTextContent`;
+  - fontes não incorporadas (`missingFile` do pdf.js, com `fontExtraProperties` para mostrar o nome real);
+  - arte até a borda: desenha a página pequena num canvas e procura algo não branco na faixa de 1 mm da borda.
+- Enquadramento: a página pode ter a sangria em volta (A4 + 3 mm de cada lado continua A4, marcado "com sangria"). Folga de 1 mm para arredondamento dos programas de design.
+- Margem de segurança: medida pela posição dos textos (não pelos desenhos). Com sangria no arquivo, conta a partir do corte.
+- `shortcut:` a arte pode girar na folha (23×5 cm → A4). Trocar em `enquadrar()` se a rodada 2 disser que não.
+- `shortcut:` imagens agrupadas pelo pdf.js (`paintImageXObjectRepeat`, grupos inline) não entram no DPI. São raras em arquivos de cliente.
+- `shortcut:` texto girado pode medir a distância até a borda errada.
+- O desenho da página (arte até a borda) só funciona no navegador. Para o chatbot (fase 2) vai precisar de outra forma; o resto não depende do navegador.
+- Cor (CMYK/RGB) ficou fora do protótipo: é só informativa e exigiria uma segunda biblioteca (pdf-lib).
+- O worker do pdf.js pesa ~1,2 MB, mas só é baixado quando o atendente abre esta ferramenta.
+- Exportar/importar: não precisa (tabela e limites vêm dos Cadastros; o PDF não é guardado).
