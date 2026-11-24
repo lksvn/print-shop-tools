@@ -1,5 +1,7 @@
-import { Badge, Card, montar, SeletorTema } from '@pst/ui'
+import { useState } from 'react'
+import { Badge, Button, Card, montar, SeletorTema } from '@pst/ui'
 import { carregarDados } from '@pst/dados'
+import { apagarExemplo, carregarExemplo, exemploCarregado, temDados } from './exemplo'
 import './index.css'
 
 type Ferramenta = {
@@ -47,15 +49,53 @@ const FERRAMENTAS: Ferramenta[] = [
     nome: 'Aproveitamento de folha',
     descricao: 'Quantas artes cabem numa folha e quanto sai cada unidade.',
     caminho: 'aproveitamento-folha/',
-    status: 'ideia',
+    status: 'pronta',
   },
   {
     nome: 'Fila de pedidos',
     descricao: 'Em que etapa está cada pedido e quais clientes estão esperando resposta.',
     caminho: 'fila-pedidos/',
-    status: 'ideia',
+    status: 'pronta',
   },
 ]
+
+function Exemplo() {
+  const [carregado, setCarregado] = useState(exemploCarregado)
+  const [vazio] = useState(() => !temDados())
+  if (!vazio && !carregado) return null
+  return (
+    <Card className="mt-6 flex flex-wrap items-center justify-between gap-3">
+      {carregado ? (
+        <>
+          <p className="text-sm text-texto-2">Você está vendo dados de exemplo: uma gráfica fictícia, com preços e pedidos inventados.</p>
+          <Button
+            variante="secundario"
+            onClick={() => {
+              if (!confirm('Apagar os dados de exemplo (cadastros, respostas e pedidos)?')) return
+              apagarExemplo()
+              setCarregado(false)
+              location.reload()
+            }}
+          >
+            Apagar exemplo
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-texto-2">Primeira vez aqui? Veja as ferramentas funcionando com uma gráfica de exemplo.</p>
+          <Button
+            onClick={() => {
+              carregarExemplo()
+              location.reload()
+            }}
+          >
+            Carregar exemplo
+          </Button>
+        </>
+      )}
+    </Card>
+  )
+}
 
 function App() {
   const nome = carregarDados().loja.nome
@@ -66,6 +106,7 @@ function App() {
         <SeletorTema />
       </div>
       <p className="mt-1 text-texto-2">Atalhos para o atendimento do dia a dia.</p>
+      <Exemplo />
 
       <ul className="mt-8 grid gap-4 sm:grid-cols-2">
         {FERRAMENTAS.map((f) => (

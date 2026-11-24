@@ -12,8 +12,8 @@ As regras de negócio vêm de um especialista em gráfica. As ferramentas traduz
 | Respostas prontas | `tools/respostas-prontas` | ação rápida | **v1 pronta** (2026-11-17) |
 | Orçamento rápido | `tools/orcamento-rapido` | ação rápida | **v1 pronta** (2026-11-17) |
 | Pix com valor | `tools/pix` | ação rápida | **v1 pronta** (2026-11-17), falta teste real de R$ 0,01 |
-| Aproveitamento de folha | `tools/aproveitamento-folha` | ideia (mostrar ao especialista) | ideia |
-| Fila de pedidos | `tools/fila-pedidos` | ideia (mostrar ao especialista) | ideia |
+| Aproveitamento de folha | `tools/aproveitamento-folha` | cálculo | **v1 pronta** (2026-11-24), espaço e margem provisórios |
+| Fila de pedidos | `tools/fila-pedidos` | controle | **v1 pronta** (2026-11-24) |
 
 Ordem sugerida: Cadastros → Respostas prontas → Pix → Orçamento rápido → Orçamento de PDF (quando a rodada 2 voltar).
 Os Cadastros vêm primeiro porque todas as outras ferramentas leem os dados que ele edita.
@@ -27,7 +27,7 @@ Regra: **um dado vai para o compartilhado quando 2 ou mais ferramentas usam esse
 | Pix: tipo da chave, chave, nome do recebedor (cidade vem do endereço) | pix, respostas prontas, orçamentos | compartilhado |
 | Folhas (nome, largura, altura) | orçamento de PDF, orçamento rápido, aproveitamento | compartilhado |
 | Papéis e preço por folha | orçamento de PDF, orçamento rápido, aproveitamento | compartilhado |
-| Produção: sangria, margem de segurança, DPI, fonte mínima | orçamento de PDF, aproveitamento | compartilhado |
+| Produção: sangria, margem de segurança, DPI, fonte mínima, espaço entre artes, margem da máquina | orçamento de PDF, aproveitamento | compartilhado |
 | Prazo padrão (dias úteis) | respostas prontas, orçamentos | compartilhado |
 | Textos das respostas prontas | só respostas prontas | `pst:respostas-prontas:v1` |
 | Modelo da mensagem de orçamento | orçamento de PDF e rápido | compartilhado |
@@ -64,6 +64,9 @@ Regra: **um dado vai para o compartilhado quando 2 ou mais ferramentas usam esse
 - Publicação: cada push no `main` roda os testes, faz o build e publica no GitHub Pages (`.github/workflows/pages.yml`).
 - `packages/dados/` (`@pst/dados`): dados da gráfica que várias ferramentas usam (ver "Dados compartilhados").
 - Dados: localStorage. Os compartilhados ficam em `pst:dados:v1`, e os de uma ferramenta só ficam em `pst:<nome>:v1`. Para trocar por servidor no futuro, basta mudar `packages/ui/src/storage.ts`.
+
+## Dados de exemplo
+Com o navegador vazio, o hub oferece "Carregar exemplo": uma gráfica fictícia (Gráfica Exemplo), com preços inventados, 5 pedidos de exemplo e as respostas padrão. Serve para mostrar as ferramentas funcionando. Não há telefones e a chave Pix é a fictícia do manual do Banco Central, então nenhum botão de WhatsApp ou Pix chega a uma pessoa real. "Apagar exemplo" limpa tudo (`hub/src/exemplo.ts`).
 
 ## Backup geral (planejado)
 Um botão no hub, "Backup de tudo", que exporta num arquivo só todas as chaves `pst:*`: cadastros, respostas, pedidos e tema. A importação valida cada parte com o validador da ferramenta dona. Serve para trocar de computador sem passar ferramenta por ferramenta. Entra quando houver 3 ou mais ferramentas com dados próprios (hoje são 2: Cadastros e Respostas prontas). Os botões de cada ferramenta continuam existindo.

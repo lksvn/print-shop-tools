@@ -14,7 +14,7 @@ v1 pronta (2026-11-17). As outras ferramentas leem os dados que ela edita.
 - [x] **Pix**: tipo da chave (com máscara por tipo), chave e nome do recebedor. A cidade, obrigatória no código Pix, vem do endereço da loja (sem campo separado).
 - [x] **Folhas**: nome, largura e altura em mm. Já vem com A6, A5, A4 e A3, e dá para incluir outras.
 - [x] **Papéis e preços**: uma tabela com os papéis nas linhas e as folhas nas colunas, com o preço em cada célula. Célula vazia = papel indisponível naquela folha. Já vem com os 5 papéis citados pelo especialista, com preço zerado.
-- [x] **Produção**: sangria (mm), margem de segurança (mm), DPI mínimo (300), fonte mínima (10 pt).
+- [x] **Produção**: sangria (mm), margem de segurança (mm), DPI mínimo (300), fonte mínima (10 pt), espaço entre artes (mm) e margem da máquina (mm), estes dois usados no Aproveitamento de folha.
 - [x] **Modelo da mensagem de orçamento**, com campos como `{cliente}`, `{itens}`, `{total}`, `{prazo}`.
 - [x] **Exportar/importar** tudo num arquivo .json (backup e cópia para outro computador). O arquivo é validado antes de entrar.
 

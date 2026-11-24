@@ -216,8 +216,8 @@ function App() {
           <Precos dados={dados} editar={editar} avisar={setAviso} />
         </Secao>
 
-        <Secao id="producao" titulo="Produção" descricao="Limites usados para avisar sobre problemas no arquivo.">
-          <div className="grid gap-4 sm:grid-cols-4">
+        <Secao id="producao" titulo="Produção" descricao="Limites para os avisos do arquivo e medidas da montagem na folha.">
+          <div className="grid gap-4 sm:grid-cols-3">
             <Campo
               label="Sangria (mm)"
               type="number"
@@ -247,6 +247,24 @@ function App() {
               min={0}
               value={dados.producao.fontePt}
               onChange={(e) => producao('fontePt', e.target.value)}
+            />
+            <Campo
+              label="Espaço entre artes (mm)"
+              ajuda="Na montagem de várias artes na folha."
+              type="number"
+              min={0}
+              step={0.5}
+              value={dados.producao.espacoMm}
+              onChange={(e) => producao('espacoMm', e.target.value)}
+            />
+            <Campo
+              label="Margem da máquina (mm)"
+              ajuda="Borda da folha que não imprime."
+              type="number"
+              min={0}
+              step={0.5}
+              value={dados.producao.margemMaquinaMm}
+              onChange={(e) => producao('margemMaquinaMm', e.target.value)}
             />
           </div>
         </Secao>

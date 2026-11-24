@@ -490,7 +490,11 @@ export function Modal({
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     const d = ref.current
-    if (aberto && !d?.open) d?.showModal()
+    if (aberto && !d?.open) {
+      d?.showModal()
+      // O <dialog> põe o foco no primeiro botão (Fechar); o campo marcado com data-autofocus deve ficar com ele.
+      d?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+    }
     if (!aberto && d?.open) d.close()
   }, [aberto])
 

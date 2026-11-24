@@ -31,7 +31,14 @@ function App() {
     return { id: crypto.randomUUID(), papel, folha: folhasDe(papel)[0] ?? '', quantidade: 1 }
   }
 
-  const [itens, setItens] = useState<Item[]>(() => [novoItem()])
+  // Vindo do Aproveitamento de folha: ../orcamento-rapido/?papel=…&folha=…&quantidade=…
+  const [itens, setItens] = useState<Item[]>(() => {
+    const q = new URLSearchParams(location.search)
+    const [papel, folha, quantidade] = [q.get('papel') ?? '', q.get('folha') ?? '', Math.floor(Number(q.get('quantidade')))]
+    if (precoDe(dados, papel, folha) !== undefined && quantidade > 0)
+      return [{ id: crypto.randomUUID(), papel, folha, quantidade }]
+    return [novoItem()]
+  })
   const [cliente, setCliente] = useState('')
   const [telefone, setTelefone] = useState('')
   const [erro, setErro] = useState('')

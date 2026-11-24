@@ -109,3 +109,12 @@ describe('orçamento', () => {
     expect(r.semPreco).toHaveLength(1)
   })
 })
+
+describe('campos novos de produção', () => {
+  it('dados salvos antes deles continuam válidos e recebem o padrão', () => {
+    const { espacoMm: _e, margemMaquinaMm: _m, ...antigo } = DADOS_PADRAO.producao
+    const r = validarDados({ ...DADOS_PADRAO, producao: antigo })
+    expect(r.producao.espacoMm).toBe(DADOS_PADRAO.producao.espacoMm)
+    expect(r.producao.margemMaquinaMm).toBe(DADOS_PADRAO.producao.margemMaquinaMm)
+  })
+})

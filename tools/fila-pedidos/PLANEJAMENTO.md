@@ -6,7 +6,7 @@ Ver de uma vez em que pé está cada pedido: quem ainda não mandou o arquivo, q
 
 ## Status
 
-Ideia: mostrar ao especialista antes de planejar a fundo (cerca de 2 dias de trabalho).
+v1 pronta (2026-11-24). Funciona num computador só; a pergunta 3 decide se precisa de servidor.
 
 ## Como funcionaria
 
@@ -23,12 +23,12 @@ Cartão parado há muito tempo fica destacado (ex.: orçamento enviado há 3 dia
 
 ## Features (v1, se aprovada)
 
-- [ ] Criar pedido em poucos campos (nome, telefone, descrição, valor).
-- [ ] Mover o cartão entre colunas com botões, que funcionam no teclado (sem obrigar a arrastar).
-- [ ] Destaque de "parado há X dias" (o X é configurável).
-- [ ] Busca por nome ou telefone.
-- [ ] Mensagens prontas por coluna (ex.: "seu pedido está pronto"), usando as Respostas prontas.
-- [ ] Exportar/importar (backup).
+- [x] Criar pedido em poucos campos (nome, telefone, descrição, valor).
+- [x] Mover o cartão entre colunas com botões, que funcionam no teclado (sem obrigar a arrastar).
+- [x] Destaque de "parado há X dias" (o X é configurável).
+- [x] Busca por nome ou telefone.
+- [x] Mensagem curta por etapa no botão WhatsApp (ex.: "seu pedido está pronto para retirar"). Ainda fixa no código; pode passar a usar as Respostas prontas.
+- [x] Exportar/importar (backup).
 
 ## Futuras features
 
@@ -50,8 +50,12 @@ A resposta 3 decide se a fila precisa de servidor desde o começo.
 
 | Data | Decisão | Motivo |
 |---|---|---|
+| 2026-11-24 | Novo pedido e edição numa modal; mover de etapa com botões ← → | Funciona no teclado e no celular, sem arrastar |
+| 2026-11-24 | Dado salvo estragado não é carregado nem sobrescrito; a tela pede para importar um backup | É a ferramenta em que perder dados mais dói |
 
 ## Notas técnicas
 
 - Pedidos em `pst:fila-pedidos:v1`. É a primeira ferramenta em que perder dados dói: backup por exportação e aviso se o último backup tiver mais de 7 dias.
-- Telefone e nome do cliente são dados pessoais: ficam só no computador da gráfica e nunca vão em link ou endereço.
+- Telefone e nome do cliente são dados pessoais: ficam só no computador da gráfica. O telefone só sai ao abrir a conversa no WhatsApp (link wa.me), que é o próprio canal com o cliente.
+- `src/pedidos.ts`: etapas, validação do que é salvo/importado, dias parado, mover e aviso de backup. Testes em `pedidos.test.ts`.
+- `src/App.tsx`: quadro (colunas no computador, etapas empilhadas no celular), busca, modal do pedido, exportar/importar.

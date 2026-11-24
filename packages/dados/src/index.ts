@@ -24,7 +24,14 @@ export type Dados = {
   pix: { tipo: TipoChavePix; chave: string; recebedor: string } // cidade do Pix = cidade do endereço
   folhas: Folha[]
   papeis: Papel[]
-  producao: { sangriaMm: number; margemMm: number; dpi: number; fontePt: number }
+  producao: {
+    sangriaMm: number
+    margemMm: number // margem de segurança do texto até o corte
+    dpi: number
+    fontePt: number
+    espacoMm: number // espaço entre artes montadas na mesma folha
+    margemMaquinaMm: number // borda da folha em que a máquina não imprime
+  }
   modeloOrcamento: string
 }
 
@@ -44,7 +51,8 @@ export const DADOS_PADRAO: Dados = {
   papeis: ['Couchê 240g', 'Sulfite color 90g', 'Sulfite 75g P/B', 'Couchê adesivo 150g', 'Couchê adesivo com recorte'].map(
     (nome) => ({ nome, precos: {} }),
   ),
-  producao: { sangriaMm: 3, margemMm: 5, dpi: 300, fontePt: 10 },
+  // shortcut: espacoMm e margemMaquinaMm são palpites até o especialista responder (aproveitamento, perguntas 2 e 3).
+  producao: { sangriaMm: 3, margemMm: 5, dpi: 300, fontePt: 10, espacoMm: 2, margemMaquinaMm: 5 },
   modeloOrcamento: 'Olá, {cliente}! Segue o orçamento:\n\n{itens}\n\nTotal: {total}\nPrazo: {prazo}\n\n{loja}',
 }
 
@@ -77,6 +85,10 @@ function texto(v: unknown, campo: string): string {
 function numero(v: unknown, campo: string): number {
   if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) erro(campo, 'um número maior ou igual a zero')
   return v
+}
+/** Campo novo: dado salvo antes dele existir não tem o campo, então usa o padrão (sem invalidar o resto). */
+function numeroOu(v: unknown, padrao: number, campo: string): number {
+  return v === undefined ? padrao : numero(v, campo)
 }
 function lista(v: unknown, campo: string): unknown[] {
   if (!Array.isArray(v)) erro(campo, 'uma lista')
@@ -154,6 +166,8 @@ export function validarDados(entrada: unknown): Dados {
       margemMm: numero(producao.margemMm, 'producao.margemMm'),
       dpi: numero(producao.dpi, 'producao.dpi'),
       fontePt: numero(producao.fontePt, 'producao.fontePt'),
+      espacoMm: numeroOu(producao.espacoMm, DADOS_PADRAO.producao.espacoMm, 'producao.espacoMm'),
+      margemMaquinaMm: numeroOu(producao.margemMaquinaMm, DADOS_PADRAO.producao.margemMaquinaMm, 'producao.margemMaquinaMm'),
     },
     modeloOrcamento: texto(d.modeloOrcamento, 'modeloOrcamento'),
   }

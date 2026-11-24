@@ -6,7 +6,7 @@ Descobrir quantas artes pequenas cabem numa folha (cartões, etiquetas, adesivos
 
 ## Status
 
-Ideia: mostrar ao especialista antes de planejar a fundo (cerca de 1 dia de trabalho).
+v1 pronta (2026-11-24). Espaço entre artes (2 mm) e margem da máquina (5 mm) são palpites até as perguntas 2 e 3; os dois ficam nos Cadastros → Produção.
 
 ## Como funcionaria
 
@@ -20,10 +20,11 @@ Ideia: mostrar ao especialista antes de planejar a fundo (cerca de 1 dia de trab
 
 ## Features (v1, se aprovada)
 
-- [ ] Cálculo de quantas cabem, considerando a sangria, o espaço entre as artes e a margem da máquina.
-- [ ] Desenho da folha (SVG simples, sem animação).
-- [ ] Folhas, papéis, preços e sangria vindos dos Cadastros.
-- [ ] Botão "levar para o Orçamento rápido" com a quantidade de folhas.
+- [x] Cálculo de quantas cabem, considerando a sangria, o espaço entre as artes e a margem da máquina.
+- [x] Desenho da folha (SVG simples, sem animação).
+- [x] Folhas, papéis, preços e sangria vindos dos Cadastros.
+- [x] Botão "levar para o Orçamento rápido" com a quantidade de folhas (abre o orçamento já preenchido).
+- [x] Compara todas as folhas cadastradas e marca a mais barata; clicar numa folha mostra o desenho dela.
 
 ## Futuras features
 
@@ -43,8 +44,12 @@ Ideia: mostrar ao especialista antes de planejar a fundo (cerca de 1 dia de trab
 
 | Data | Decisão | Motivo |
 |---|---|---|
+| 2026-11-24 | Mostrar todas as folhas lado a lado, com a mais barata marcada, em vez de escolher uma folha antes | O atendente vê na hora qual folha compensa |
+| 2026-11-24 | Espaço entre artes e margem da máquina nos Cadastros (Produção), com padrão 2 mm e 5 mm | São medidas da gráfica, não de cada orçamento; ficam no backup dos Cadastros |
 
 ## Notas técnicas
 
-- O cálculo é uma função pura: `floor(área útil / (arte + espaço))` nos dois sentidos, comparando em pé e deitada. Precisa de teste com casos conhecidos (ex.: cartões 9×5 numa A3).
+- `src/montagem.ts`: cálculo puro. Cada arte ocupa arte + sangria em volta; cabem `floor((área útil + espaço) / (célula + espaço))` em cada sentido; testa em pé e deitada. Testes com casos conhecidos (cartão 9×5 numa A3: 24 sem sangria; 16 com sangria 3, espaço 2 e margem 5).
+- `src/App.tsx`: tela e desenho em SVG (margem da máquina tracejada, sangria clara, arte por cima).
+- O Orçamento rápido aceita `?papel=…&folha=…&quantidade=…` para abrir já preenchido.
 - Exportar/importar: não precisa na v1. Se ganhar "produtos prontos" (ex.: cartão 9×5), eles são dados próprios e entram no exportar/importar (ou nos Cadastros, se o Orçamento rápido também usar).
