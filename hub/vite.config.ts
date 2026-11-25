@@ -11,6 +11,15 @@ const PORTAS: Record<string, number> = {
   pix: 5178,
   'aproveitamento-folha': 5179,
   'fila-pedidos': 5180,
+  'prova-aprovacao': 5181,
+  'tabela-precos': 5182,
+  'montagem-impressao': 5183,
+  'livreto-dobra': 5184,
+  'calculadora-resolucao': 5185,
+  'qr-code': 5186,
+  'ordem-servico': 5187,
+  'produtos-prontos': 5188,
+  'fechamento-dia': 5189,
 }
 
 // O hub é construído primeiro e limpa dist/; cada ferramenta grava em dist/<nome>/ depois.

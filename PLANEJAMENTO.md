@@ -5,6 +5,8 @@ Reunir pequenas ferramentas que agilizem o atendimento da gráfica: analisar arq
 As regras de negócio vêm de um especialista em gráfica. As ferramentas traduzem essas regras em telas simples.
 
 ## Ferramentas
+No hub, as ferramentas aparecem em quatro seções, na ordem do dia a dia: **Atendimento** (orçar e responder), **Arquivo e produção** (do arquivo à folha pronta), **Pedidos e caixa** (fila, OS, fechamento) e **Configuração** (Cadastros).
+
 | Ferramenta | Pasta | Tipo | Status |
 |---|---|---|---|
 | Cadastros da gráfica | `tools/cadastros` | base (edita os dados compartilhados) | **v1 pronta** (2026-11-17) |
@@ -14,6 +16,17 @@ As regras de negócio vêm de um especialista em gráfica. As ferramentas traduz
 | Pix com valor | `tools/pix` | ação rápida | **v1 pronta** (2026-11-17), falta teste real de R$ 0,01 |
 | Aproveitamento de folha | `tools/aproveitamento-folha` | cálculo | **v1 pronta** (2026-11-24), espaço e margem provisórios |
 | Fila de pedidos | `tools/fila-pedidos` | controle | **v1 pronta** (2026-11-24) |
+| Prova para aprovação | `tools/prova-aprovacao` | produção | **v1 pronta** (2026-11-25), texto provisório |
+| Tabela de preços para o cliente | `tools/tabela-precos` | balcão | **v1 pronta** (2026-11-25), preço por folha |
+| Montagem para impressão | `tools/montagem-impressao` | produção | **v1 pronta** (2026-11-25), marcas e virada provisórias |
+| Livreto e dobra | `tools/livreto-dobra` | produção | **v1 pronta** (2026-11-25), recuo da dobra provisório |
+| Gerador de QR code | `tools/qr-code` | balcão | **v1 pronta** (2026-11-25) |
+| Calculadora de resolução | `tools/calculadora-resolucao` | balcão | **v1 pronta** (2026-11-25) |
+| Ordem de serviço / recibo | `tools/ordem-servico` | gestão | **v1 pronta** (2026-11-25) |
+| Produtos prontos | `tools/produtos-prontos` | gestão | **v1 pronta** (2026-11-25), só quantidades cadastradas |
+| Fechamento do dia | `tools/fechamento-dia` | gestão | **v1 pronta** (2026-11-25), formas de pagamento provisórias |
+
+Pergunta geral para o especialista: "o que mais toma tempo entre receber o arquivo e imprimir?"
 
 Ordem sugerida: Cadastros → Respostas prontas → Pix → Orçamento rápido → Orçamento de PDF (quando a rodada 2 voltar).
 Os Cadastros vêm primeiro porque todas as outras ferramentas leem os dados que ele edita.
@@ -27,11 +40,13 @@ Regra: **um dado vai para o compartilhado quando 2 ou mais ferramentas usam esse
 | Pix: tipo da chave, chave, nome do recebedor (cidade vem do endereço) | pix, respostas prontas, orçamentos | compartilhado |
 | Folhas (nome, largura, altura) | orçamento de PDF, orçamento rápido, aproveitamento | compartilhado |
 | Papéis e preço por folha | orçamento de PDF, orçamento rápido, aproveitamento | compartilhado |
-| Produção: sangria, margem de segurança, DPI, fonte mínima, espaço entre artes, margem da máquina | orçamento de PDF, aproveitamento | compartilhado |
+| Produção: sangria, margem de segurança, DPI, fonte mínima, espaço entre artes, margem da máquina | orçamento de PDF, aproveitamento, montagem | compartilhado |
+| Conta de montagem (`montar`: quantas artes cabem e onde) | aproveitamento, montagem | `@pst/dados` |
 | Prazo padrão (dias úteis) | respostas prontas, orçamentos | compartilhado |
 | Textos das respostas prontas | só respostas prontas | `pst:respostas-prontas:v1` |
 | Modelo da mensagem de orçamento | orçamento de PDF e rápido | compartilhado |
-| Pedidos da fila | só fila de pedidos | `pst:fila-pedidos:v1` |
+| Pedidos da fila (com pagamentos, prazo e observações) | fila (edita), ordem de serviço e fechamento (leem) | `pst:fila-pedidos:v1`, formato e validação em `@pst/dados` (`pedidos.ts`) |
+| Produtos com preço por quantidade | só produtos prontos | `pst:produtos-prontos:v1` |
 
 **Como fica no código:**
 - Novo pacote `packages/dados` (`@pst/dados`), com o tipo `Dados`, os valores padrão, a validação (usada ao importar o .json) e as funções `carregarDados()` / `salvarDados()`.
@@ -57,7 +72,7 @@ Regra: **um dado vai para o compartilhado quando 2 ou mais ferramentas usam esse
 - **Servidor**: quando vier, só `carregarDados`/`salvarDados` mudam. Os dados compartilhados são os primeiros a ir para o servidor, porque são os que mais fazem sentido entre vários computadores.
 
 ## Arquitetura
-- `hub/`: página inicial com os cartões das ferramentas (lista `FERRAMENTAS` em `hub/src/App.tsx`).
+- `hub/`: página inicial com os cartões das ferramentas (lista `SECOES` em `hub/src/App.tsx`, cada seção com as suas ferramentas).
 - `tools/<nome>/`: cada ferramenta é um mini-projeto Vite independente, com build e planejamento próprios.
 - `packages/ui/` (`@pst/ui`): só peças genéricas (componentes, tema, `cn`, storage). Nenhuma regra de negócio.
 - Build: `npm run build` gera um site estático em `dist/` (hub na raiz, cada ferramenta em `dist/<nome>/`), com caminhos relativos: funciona na raiz de um domínio ou numa subpasta.
@@ -69,7 +84,7 @@ Regra: **um dado vai para o compartilhado quando 2 ou mais ferramentas usam esse
 Com o navegador vazio, o hub oferece "Carregar exemplo": uma gráfica fictícia (Gráfica Exemplo), com preços inventados, 5 pedidos de exemplo e as respostas padrão. Serve para mostrar as ferramentas funcionando. Não há telefones e a chave Pix é a fictícia do manual do Banco Central, então nenhum botão de WhatsApp ou Pix chega a uma pessoa real. "Apagar exemplo" limpa tudo (`hub/src/exemplo.ts`).
 
 ## Backup geral (planejado)
-Um botão no hub, "Backup de tudo", que exporta num arquivo só todas as chaves `pst:*`: cadastros, respostas, pedidos e tema. A importação valida cada parte com o validador da ferramenta dona. Serve para trocar de computador sem passar ferramenta por ferramenta. Entra quando houver 3 ou mais ferramentas com dados próprios (hoje são 2: Cadastros e Respostas prontas). Os botões de cada ferramenta continuam existindo.
+Um botão no hub, "Backup de tudo", que exporta num arquivo só todas as chaves `pst:*`: cadastros, respostas, pedidos e tema. A importação valida cada parte com o validador da ferramenta dona. Serve para trocar de computador sem passar ferramenta por ferramenta. Entra quando houver 3 ou mais ferramentas com dados próprios (já são 4: Cadastros, Respostas prontas, Fila de pedidos e Produtos prontos). Os botões de cada ferramenta continuam existindo.
 
 ## Multi-empresa (futuro: liberar como serviço)
 Não será construído agora. A ideia é que nada feito hoje impeça isso depois.
@@ -116,7 +131,7 @@ Não será construído agora. A ideia é que nada feito hoje impeça isso depois
 
 ## Nova ferramenta
 1. Copiar `tools/cadastros/` para `tools/<nome>/` (apagar o `src/` que não servir). O `App.tsx` usa `<Topo />` (voltar + tema) e termina com `montar(<App />)`, ambos do `@pst/ui`. No `package.json`, trocar `name`. No `vite.config.ts`, trocar `base: '/<nome>/'`, `outDir: '../../dist/<nome>'` e a porta.
-2. Adicionar a porta em `PORTAS` (`hub/vite.config.ts`) e um item em `FERRAMENTAS` (`hub/src/App.tsx`). O `npm run dev` encontra a ferramenta sozinho.
+2. Adicionar a porta em `PORTAS` (`hub/vite.config.ts`) e um item na seção certa de `SECOES` (`hub/src/App.tsx`). O `npm run dev` encontra a ferramenta sozinho.
 3. Criar o `PLANEJAMENTO.md` da ferramenta com o modelo abaixo.
 
 ## Modelo de PLANEJAMENTO.md

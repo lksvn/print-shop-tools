@@ -1,5 +1,23 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { reais } from '@pst/dados'
+import {
+  carregarDados,
+  carregarFila,
+  CHAVE_FILA,
+  diasDesde,
+  ETAPAS,
+  FORMAS_PAGAMENTO,
+  MENSAGEM_ETAPA,
+  mover,
+  parado,
+  precisaBackup,
+  reais,
+  saldo,
+  totalPago,
+  validarFila,
+  type FormaPagamento,
+  type Pagamento,
+  type Pedido,
+} from '@pst/dados'
 import {
   Badge,
   Button,
@@ -13,42 +31,98 @@ import {
   linkWhatsapp,
   Modal,
   montar,
+  Select,
+  somarDiasUteis,
   Textarea,
   toast,
   Topo,
 } from '@pst/ui'
 import { exportarJson, importarJson, salvar } from '@pst/ui/storage'
-import { diasDesde, ETAPAS, FILA_PADRAO, MENSAGEM, mover, parado, precisaBackup, validarFila, type Fila, type Pedido } from './pedidos'
 import './index.css'
 
-const CHAVE = 'pst:fila-pedidos:v1'
 const semAcento = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+const dataLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-/** Lê a fila salva. Se o dado salvo estiver estragado, não usa nem sobrescreve: avisa e trava o salvamento. */
-function carregarFila(): { fila: Fila; estragado: boolean } {
-  const bruto = localStorage.getItem(CHAVE)
-  if (!bruto) return { fila: FILA_PADRAO, estragado: false }
-  try {
-    const fila = validarFila(JSON.parse(bruto))
-    return fila ? { fila, estragado: false } : { fila: FILA_PADRAO, estragado: true }
-  } catch {
-    return { fila: FILA_PADRAO, estragado: true }
-  }
+type Rascunho = Pick<Pedido, 'cliente' | 'telefone' | 'descricao' | 'valor' | 'prazo' | 'observacoes' | 'pagamentos'>
+
+/** Pagamentos do pedido: sinal, parcelas, o restante na entrega. A data é a de quando foi lançado. */
+function Pagamentos({ lista, valor, aoMudar }: { lista: Pagamento[]; valor?: number; aoMudar: (l: Pagamento[]) => void }) {
+  const [novo, setNovo] = useState<number | undefined>()
+  const [forma, setForma] = useState<FormaPagamento>('pix')
+  const ids = { valor: useId(), forma: useId() }
+  const pago = totalPago({ pagamentos: lista } as Pedido)
+  const falta = saldo({ valor, pagamentos: lista } as Pedido)
+  return (
+    <fieldset className="grid gap-2 rounded-md border border-borda p-3">
+      <legend className="px-1 text-sm font-medium">Pagamentos</legend>
+      {lista.length > 0 && (
+        <ul className="grid gap-1 text-sm">
+          {lista.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2">
+              <span className="tabular-nums">
+                {reais(p.valor)} · {FORMAS_PAGAMENTO[p.forma]} · {new Date(p.em).toLocaleDateString('pt-BR')}
+              </span>
+              <Button
+                type="button"
+                variante="fantasma"
+                className="px-2"
+                aria-label={`Remover pagamento de ${reais(p.valor)}`}
+                onClick={() => aoMudar(lista.filter((x) => x.id !== p.id))}
+              >
+                Remover
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {falta !== undefined && (
+        <p className="text-sm text-texto-2">
+          Pago {reais(pago)} · {falta > 0 ? `falta ${reais(falta)}` : 'quitado'}
+        </p>
+      )}
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="grid gap-1.5">
+          <Label htmlFor={ids.valor}>Valor recebido</Label>
+          <InputMoeda id={ids.valor} className="w-32" valor={novo} aoMudar={setNovo} />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor={ids.forma}>Forma</Label>
+          <Select id={ids.forma} value={forma} onChange={(e) => setForma(e.target.value as FormaPagamento)}>
+            {Object.entries(FORMAS_PAGAMENTO).map(([v, nome]) => (
+              <option key={v} value={v}>
+                {nome}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <Button
+          type="button"
+          variante="secundario"
+          disabled={!novo}
+          onClick={() => {
+            if (!novo) return
+            aoMudar([...lista, { id: crypto.randomUUID(), valor: novo, forma, em: new Date().toISOString() }])
+            setNovo(undefined)
+          }}
+        >
+          Lançar
+        </Button>
+      </div>
+    </fieldset>
+  )
 }
-
-type Rascunho = { cliente: string; telefone: string; descricao: string; valor?: number }
 
 function FormPedido({ inicial, aoSalvar }: { inicial: Rascunho; aoSalvar: (r: Rascunho) => void }) {
   const [r, setR] = useState(inicial)
   const [erro, setErro] = useState('')
-  const ids = { cliente: useId(), telefone: useId(), descricao: useId(), valor: useId() }
+  const ids = { cliente: useId(), telefone: useId(), descricao: useId(), valor: useId(), prazo: useId(), obs: useId() }
   return (
     <form
       className="grid gap-4 p-4"
       onSubmit={(e) => {
         e.preventDefault()
         if (!r.cliente.trim()) return setErro('Informe o nome do cliente.')
-        aoSalvar({ ...r, cliente: r.cliente.trim(), descricao: r.descricao.trim() })
+        aoSalvar({ ...r, cliente: r.cliente.trim(), descricao: r.descricao.trim(), observacoes: r.observacoes?.trim() || undefined })
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -71,10 +145,27 @@ function FormPedido({ inicial, aoSalvar }: { inicial: Rascunho; aoSalvar: (r: Ra
           onChange={(e) => setR({ ...r, descricao: e.target.value })}
         />
       </div>
-      <div className="grid gap-1.5 sm:max-w-48">
-        <Label htmlFor={ids.valor}>Valor (R$, opcional)</Label>
-        <InputMoeda id={ids.valor} valor={r.valor} aoMudar={(valor) => setR({ ...r, valor })} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <Label htmlFor={ids.valor}>Valor (R$, opcional)</Label>
+          <InputMoeda id={ids.valor} valor={r.valor} aoMudar={(valor) => setR({ ...r, valor })} />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor={ids.prazo}>Entregar até</Label>
+          <Input id={ids.prazo} type="date" value={r.prazo ?? ''} onChange={(e) => setR({ ...r, prazo: e.target.value || undefined })} />
+        </div>
       </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor={ids.obs}>Observações para a produção (opcional)</Label>
+        <Textarea
+          id={ids.obs}
+          rows={2}
+          placeholder="Ex.: laminação fosca, conferir a cor do logo"
+          value={r.observacoes ?? ''}
+          onChange={(e) => setR({ ...r, observacoes: e.target.value })}
+        />
+      </div>
+      <Pagamentos lista={r.pagamentos} valor={r.valor} aoMudar={(pagamentos) => setR({ ...r, pagamentos })} />
       {erro && (
         <p role="alert" className="text-sm text-erro">
           {erro}
@@ -87,6 +178,15 @@ function FormPedido({ inicial, aoSalvar }: { inicial: Rascunho; aoSalvar: (r: Ra
   )
 }
 
+/** Pedido novo já vem com o prazo padrão dos Cadastros. */
+const novoRascunho = (): Rascunho => ({
+  cliente: '',
+  telefone: '',
+  descricao: '',
+  pagamentos: [],
+  prazo: dataLocal(somarDiasUteis(new Date(), carregarDados().loja.prazoDiasUteis)),
+})
+
 function App() {
   const [{ fila: inicial, estragado }] = useState(carregarFila)
   const [fila, setFila] = useState(inicial)
@@ -97,7 +197,7 @@ function App() {
   const ids = { busca: useId(), dias: useId() }
 
   useEffect(() => {
-    if (!estragado) salvar(CHAVE, fila)
+    if (!estragado) salvar(CHAVE_FILA, fila)
   }, [fila, estragado])
 
   const termo = semAcento(busca.trim())
@@ -238,6 +338,16 @@ function App() {
                       {p.valor !== undefined && <span className="tabular-nums">{reais(p.valor)}</span>}
                     </div>
                     {p.descricao && <p className="whitespace-pre-wrap text-texto-2">{p.descricao}</p>}
+                    {(p.pagamentos.length > 0 || p.prazo) && (
+                      <p className="text-xs text-texto-2">
+                        {[
+                          p.prazo && `Entregar até ${new Date(`${p.prazo}T12:00`).toLocaleDateString('pt-BR')}`,
+                          p.pagamentos.length > 0 && (saldo(p) === 0 ? 'Quitado' : `Pago ${reais(totalPago(p))}${saldo(p) ? `, falta ${reais(saldo(p)!)}` : ''}`),
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
+                    )}
                     <p className={cn('text-xs', atrasado ? 'text-alerta' : 'text-texto-3')}>
                       {dias === 0 ? 'Entrou hoje nesta etapa' : `Há ${dias} ${dias === 1 ? 'dia' : 'dias'} nesta etapa`}
                     </p>
@@ -262,7 +372,7 @@ function App() {
                       </Button>
                       {p.telefone && (
                         <a
-                          href={linkWhatsapp(MENSAGEM[p.etapa](p.cliente), p.telefone)}
+                          href={linkWhatsapp(MENSAGEM_ETAPA[p.etapa](p.cliente), p.telefone)}
                           target="_blank"
                           rel="noopener noreferrer"
                           title={formatarTelefone(p.telefone)}
@@ -274,6 +384,13 @@ function App() {
                       <Button variante="fantasma" className="px-3" onClick={() => setEditando(p)}>
                         Editar
                       </Button>
+                      <a
+                        href={`../ordem-servico/?pedido=${p.id}`}
+                        aria-label={`Ordem de serviço ou recibo de ${p.cliente}`}
+                        className="inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-tinta hover:bg-suave sm:h-9"
+                      >
+                        OS
+                      </a>
                       <Button
                         variante="perigo"
                         className="px-3"
@@ -304,7 +421,7 @@ function App() {
         {editando && (
           <FormPedido
             key={editando === 'novo' ? 'novo' : editando.id}
-            inicial={editando === 'novo' ? { cliente: '', telefone: '', descricao: '' } : editando}
+            inicial={editando === 'novo' ? novoRascunho() : editando}
             aoSalvar={salvarRascunho}
           />
         )}

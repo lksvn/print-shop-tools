@@ -29,6 +29,8 @@ Cartão parado há muito tempo fica destacado (ex.: orçamento enviado há 3 dia
 - [x] Busca por nome ou telefone.
 - [x] Mensagem curta por etapa no botão WhatsApp (ex.: "seu pedido está pronto para retirar"). Ainda fixa no código; pode passar a usar as Respostas prontas.
 - [x] Exportar/importar (backup).
+- [x] Prazo de entrega (padrão: prazo dos Cadastros), observações para a produção e pagamentos (valor, forma, data) no pedido. O cartão mostra o prazo e quanto falta.
+- [x] Botão "OS" em cada pedido, que abre a Ordem de serviço / recibo.
 
 ## Futuras features
 
@@ -52,10 +54,12 @@ A resposta 3 decide se a fila precisa de servidor desde o começo.
 |---|---|---|
 | 2026-11-24 | Novo pedido e edição numa modal; mover de etapa com botões ← → | Funciona no teclado e no celular, sem arrastar |
 | 2026-11-24 | Dado salvo estragado não é carregado nem sobrescrito; a tela pede para importar um backup | É a ferramenta em que perder dados mais dói |
+| 2026-11-25 | Formato e validação dos pedidos foram para `@pst/dados` | Três ferramentas leem os pedidos (Fila, Ordem de serviço, Fechamento do dia) |
+| 2026-11-25 | Pedido salvo antes dos pagamentos continua válido (sem pagamentos) | Atualizar o site não pode travar a fila de ninguém |
 
 ## Notas técnicas
 
 - Pedidos em `pst:fila-pedidos:v1`. É a primeira ferramenta em que perder dados dói: backup por exportação e aviso se o último backup tiver mais de 7 dias.
 - Telefone e nome do cliente são dados pessoais: ficam só no computador da gráfica. O telefone só sai ao abrir a conversa no WhatsApp (link wa.me), que é o próprio canal com o cliente.
-- `src/pedidos.ts`: etapas, validação do que é salvo/importado, dias parado, mover e aviso de backup. Testes em `pedidos.test.ts`.
-- `src/App.tsx`: quadro (colunas no computador, etapas empilhadas no celular), busca, modal do pedido, exportar/importar.
+- `packages/dados/src/pedidos.ts`: etapas, formas de pagamento, validação do que é salvo/importado (`validarFila`, `carregarFila`), dias parado, mover, saldo e aviso de backup. Testes em `pedidos.test.ts`.
+- `src/App.tsx`: quadro (colunas no computador, etapas empilhadas no celular), busca, modal do pedido com pagamentos, exportar/importar.

@@ -26,25 +26,28 @@
   --erro-fundo: oklch(0.971 0.013 17);
 }
 
-.dark {
-  color-scheme: dark;
-  --fundo: oklch(0.17 0.01 255);
-  --superficie: oklch(0.21 0.012 255);
-  --suave: oklch(0.26 0.012 255);
-  --borda: oklch(0.3 0.012 255);
-  --borda-forte: oklch(0.4 0.012 255);
-  --texto: oklch(0.95 0.005 255);
-  --texto-2: oklch(0.8 0.01 255);
-  --texto-3: oklch(0.7 0.01 255);
-  --tinta: oklch(0.76 0.11 255);
-  --tinta-hover: oklch(0.82 0.09 255);
-  --sobre-tinta: oklch(0.17 0.02 255);
-  --ok: oklch(0.78 0.14 150);
-  --ok-fundo: oklch(0.27 0.04 150);
-  --alerta: oklch(0.83 0.13 80);
-  --alerta-fundo: oklch(0.28 0.04 80);
-  --erro: oklch(0.75 0.15 25);
-  --erro-fundo: oklch(0.28 0.05 25);
+/* Na impressão vale sempre o tema claro: papel é branco, texto claro some. */
+@media screen {
+  .dark {
+    color-scheme: dark;
+    --fundo: oklch(0.17 0.01 255);
+    --superficie: oklch(0.21 0.012 255);
+    --suave: oklch(0.26 0.012 255);
+    --borda: oklch(0.3 0.012 255);
+    --borda-forte: oklch(0.4 0.012 255);
+    --texto: oklch(0.95 0.005 255);
+    --texto-2: oklch(0.8 0.01 255);
+    --texto-3: oklch(0.7 0.01 255);
+    --tinta: oklch(0.76 0.11 255);
+    --tinta-hover: oklch(0.82 0.09 255);
+    --sobre-tinta: oklch(0.17 0.02 255);
+    --ok: oklch(0.78 0.14 150);
+    --ok-fundo: oklch(0.27 0.04 150);
+    --alerta: oklch(0.83 0.13 80);
+    --alerta-fundo: oklch(0.28 0.04 80);
+    --erro: oklch(0.75 0.15 25);
+    --erro-fundo: oklch(0.28 0.05 25);
+  }
 }
 
 @theme inline {

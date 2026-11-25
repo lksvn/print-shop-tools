@@ -49,7 +49,8 @@ v1 pronta (2026-11-24). Espaço entre artes (2 mm) e margem da máquina (5 mm) s
 
 ## Notas técnicas
 
-- `src/montagem.ts`: cálculo puro. Cada arte ocupa arte + sangria em volta; cabem `floor((área útil + espaço) / (célula + espaço))` em cada sentido; testa em pé e deitada. Testes com casos conhecidos (cartão 9×5 numa A3: 24 sem sangria; 16 com sangria 3, espaço 2 e margem 5).
+- `montar()` (quantas cabem e onde) fica em `@pst/dados` (`packages/dados/src/montagem.ts`), porque a Montagem para impressão usa a mesma conta. Cada arte ocupa arte + sangria em volta; cabem `floor((área útil + espaço) / (célula + espaço))` em cada sentido; testa em pé e deitada. Testes lá (cartão 9×5 numa A3: 24 sem sangria; 16 com sangria 3, espaço 2 e margem 5).
+- `src/montagem.ts`: opções por folha, preço e a mais barata (`opcoesPorFolha`).
 - `src/App.tsx`: tela e desenho em SVG (margem da máquina tracejada, sangria clara, arte por cima).
 - O Orçamento rápido aceita `?papel=…&folha=…&quantidade=…` para abrir já preenchido.
 - Exportar/importar: não precisa na v1. Se ganhar "produtos prontos" (ex.: cartão 9×5), eles são dados próprios e entram no exportar/importar (ou nos Cadastros, se o Orçamento rápido também usar).

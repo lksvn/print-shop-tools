@@ -259,3 +259,6 @@ export const textoDosItens = (linhas: ReturnType<typeof calcularOrcamento>['linh
     .filter((l) => l.unitario !== undefined && l.subtotal !== undefined && l.quantidade > 0)
     .map((l) => `• ${l.quantidade} × ${l.folha} ${l.papel} (${reais(l.unitario!)} cada): ${reais(l.subtotal!)}`)
     .join('\n')
+
+export * from './montagem'
+export * from './pedidos'

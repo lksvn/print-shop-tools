@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { diasDesde, FILA_PADRAO, mover, parado, precisaBackup, validarFila, type Pedido } from './pedidos'
+import { carregarFila, diasDesde, FILA_PADRAO, mover, parado, precisaBackup, saldo, totalPago, validarFila, type Pedido } from './pedidos'
 
 const agora = new Date('2026-11-24T12:00:00Z')
 const pedido = (m: Partial<Pedido> = {}): Pedido => ({
@@ -7,6 +7,7 @@ const pedido = (m: Partial<Pedido> = {}): Pedido => ({
   cliente: 'Ana',
   telefone: '41999998888',
   descricao: '100 cartões',
+  pagamentos: [],
   etapa: 'orcamento',
   criadoEm: '2026-11-20T12:00:00Z',
   etapaDesde: '2026-11-20T12:00:00Z',
@@ -58,5 +59,45 @@ describe('validarFila', () => {
     expect(validarFila({ pedidos: [pedido({ criadoEm: 'ontem' })] })).toBeNull()
     expect(validarFila({ pedidos: [pedido({ valor: -1 })] })).toBeNull()
     expect(validarFila({ respostas: [] })).toBeNull()
+  })
+})
+
+describe('pagamentos', () => {
+  const pag = (valor: number, forma = 'pix') => ({ id: crypto.randomUUID(), valor, forma, em: '2026-11-24T10:00:00Z' })
+
+  it('pedido antigo, sem pagamentos, continua válido', () => {
+    const { pagamentos, ...antigo } = pedido()
+    expect(pagamentos).toEqual([])
+    expect(validarFila({ pedidos: [antigo] })?.pedidos[0].pagamentos).toEqual([])
+  })
+
+  it('rejeita pagamento zerado, sem data ou com forma desconhecida', () => {
+    expect(validarFila({ pedidos: [pedido({ pagamentos: [pag(0)] as never })] })).toBeNull()
+    expect(validarFila({ pedidos: [pedido({ pagamentos: [{ ...pag(10), em: 'ontem' }] as never })] })).toBeNull()
+    expect(validarFila({ pedidos: [pedido({ pagamentos: [pag(10, 'cheque')] as never })] })).toBeNull()
+  })
+
+  it('soma o pago e calcula o saldo sem ficar negativo', () => {
+    const p = validarFila({ pedidos: [pedido({ valor: 100, pagamentos: [pag(30.1), pag(20.2, 'dinheiro')] as never })] })!.pedidos[0]
+    expect(totalPago(p)).toBe(50.3)
+    expect(saldo(p)).toBe(49.7)
+    expect(saldo({ ...p, valor: 40 })).toBe(0)
+    expect(saldo({ ...p, valor: undefined })).toBeUndefined()
+  })
+
+  it('prazo só no formato de data e observação vazia some', () => {
+    const p = validarFila({ pedidos: [pedido({ prazo: '2026-11-30', observacoes: '  ' })] })!.pedidos[0]
+    expect(p.prazo).toBe('2026-11-30')
+    expect(p.observacoes).toBeUndefined()
+    expect(validarFila({ pedidos: [pedido({ prazo: 'amanhã' })] })!.pedidos[0].prazo).toBeUndefined()
+  })
+})
+
+describe('carregarFila', () => {
+  const de = (v: string | null) => ({ getItem: () => v })
+  it('vazio é fila nova; estragado avisa sem perder nada', () => {
+    expect(carregarFila(de(null))).toEqual({ fila: FILA_PADRAO, estragado: false })
+    expect(carregarFila(de('{')).estragado).toBe(true)
+    expect(carregarFila(de('{"pedidos":"x"}')).estragado).toBe(true)
   })
 })
